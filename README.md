@@ -1,3 +1,7 @@
+**Fudmottin Test Fork**
+
+Do not use! Go to https://github.com/bitcoin/bitcoin
+
 Bitcoin Core integration/staging tree
 =====================================
 
