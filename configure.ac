@@ -125,6 +125,7 @@ AC_PATH_PROG([GIT], [git])
 AC_PATH_PROG([CCACHE], [ccache])
 AC_PATH_PROG([XGETTEXT], [xgettext])
 AC_PATH_PROG([HEXDUMP], [hexdump])
+AC_PATH_TOOL([OBJDUMP], [objdump])
 AC_PATH_TOOL([OBJCOPY], [objcopy])
 AC_PATH_PROG([DOXYGEN], [doxygen])
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
@@ -401,37 +402,35 @@ if test "$enable_werror" = "yes"; then
   ERROR_CXXFLAGS=$CXXFLAG_WERROR
 fi
 
-if test "$CXXFLAGS_overridden" = "no"; then
-  AX_CHECK_COMPILE_FLAG([-Wall], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wall"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wextra], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wextra"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wgnu], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wgnu"], [], [$CXXFLAG_WERROR])
-  dnl some compilers will ignore -Wformat-security without -Wformat, so just combine the two here.
-  AX_CHECK_COMPILE_FLAG([-Wformat -Wformat-security], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wformat -Wformat-security"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wvla], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wvla"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wshadow-field], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wshadow-field"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wthread-safety], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wthread-safety"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wloop-analysis], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wloop-analysis"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wredundant-decls], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wredundant-decls"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wunused-member-function], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wunused-member-function"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wdate-time], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wdate-time"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wconditional-uninitialized], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wconditional-uninitialized"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wduplicated-branches], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wduplicated-branches"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wduplicated-cond], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wduplicated-cond"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wlogical-op], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wlogical-op"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Woverloaded-virtual], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Woverloaded-virtual"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wsuggest-override], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wsuggest-override"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wimplicit-fallthrough], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wimplicit-fallthrough"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wunreachable-code], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wunreachable-code"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wdocumentation], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wdocumentation"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wall], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wall"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wextra], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wextra"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wgnu], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wgnu"], [], [$CXXFLAG_WERROR])
+dnl some compilers will ignore -Wformat-security without -Wformat, so just combine the two here.
+AX_CHECK_COMPILE_FLAG([-Wformat -Wformat-security], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wformat -Wformat-security"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wvla], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wvla"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wshadow-field], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wshadow-field"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wthread-safety], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wthread-safety"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wloop-analysis], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wloop-analysis"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wredundant-decls], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wredundant-decls"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wunused-member-function], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wunused-member-function"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wdate-time], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wdate-time"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wconditional-uninitialized], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wconditional-uninitialized"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wduplicated-branches], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wduplicated-branches"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wduplicated-cond], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wduplicated-cond"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wlogical-op], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wlogical-op"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Woverloaded-virtual], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Woverloaded-virtual"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wsuggest-override], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wsuggest-override"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wimplicit-fallthrough], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wimplicit-fallthrough"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wunreachable-code], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wunreachable-code"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wdocumentation], [WARN_CXXFLAGS="$WARN_CXXFLAGS -Wdocumentation"], [], [$CXXFLAG_WERROR])
 
-  dnl Some compilers (gcc) ignore unknown -Wno-* options, but warn about all
-  dnl unknown options if any other warning is produced. Test the -Wfoo case, and
-  dnl set the -Wno-foo case if it works.
-  AX_CHECK_COMPILE_FLAG([-Wunused-parameter], [NOWARN_CXXFLAGS="$NOWARN_CXXFLAGS -Wno-unused-parameter"], [], [$CXXFLAG_WERROR])
-  AX_CHECK_COMPILE_FLAG([-Wself-assign], [NOWARN_CXXFLAGS="$NOWARN_CXXFLAGS -Wno-self-assign"], [], [$CXXFLAG_WERROR])
-  if test "$suppress_external_warnings" != "yes" ; then
-    AX_CHECK_COMPILE_FLAG([-Wdeprecated-copy], [NOWARN_CXXFLAGS="$NOWARN_CXXFLAGS -Wno-deprecated-copy"], [], [$CXXFLAG_WERROR])
-  fi
+dnl Some compilers (gcc) ignore unknown -Wno-* options, but warn about all
+dnl unknown options if any other warning is produced. Test the -Wfoo case, and
+dnl set the -Wno-foo case if it works.
+AX_CHECK_COMPILE_FLAG([-Wunused-parameter], [NOWARN_CXXFLAGS="$NOWARN_CXXFLAGS -Wno-unused-parameter"], [], [$CXXFLAG_WERROR])
+AX_CHECK_COMPILE_FLAG([-Wself-assign], [NOWARN_CXXFLAGS="$NOWARN_CXXFLAGS -Wno-self-assign"], [], [$CXXFLAG_WERROR])
+if test "$suppress_external_warnings" != "yes" ; then
+  AX_CHECK_COMPILE_FLAG([-Wdeprecated-copy], [NOWARN_CXXFLAGS="$NOWARN_CXXFLAGS -Wno-deprecated-copy"], [], [$CXXFLAG_WERROR])
 fi
 
 dnl Don't allow extended (non-ASCII) symbols in identifiers. This is easier for code review.
@@ -696,6 +695,9 @@ case $host in
      TARGET_OS=darwin
      if  test $cross_compiling != "yes"; then
        BUILD_OS=darwin
+
+       AX_CHECK_LINK_FLAG([-Wl,-headerpad_max_install_names], [CORE_LDFLAGS="$CORE_LDFLAGS -Wl,-headerpad_max_install_names"], [], [$LDFLAG_WERROR])
+
        AC_CHECK_PROG([BREW], [brew], [brew])
        if test "$BREW" = "brew"; then
          dnl These Homebrew packages may be keg-only, meaning that they won't be found
@@ -759,8 +761,6 @@ case $host in
            ;;
          *)
            AC_PATH_TOOL([DSYMUTIL], [dsymutil], [dsymutil])
-           AC_PATH_TOOL([INSTALL_NAME_TOOL], [install_name_tool], [install_name_tool])
-           AC_PATH_TOOL([OTOOL], [otool], [otool])
            AC_PATH_PROG([ZIP], [zip], [zip])
 
            dnl libtool will try to strip the static lib, which is a problem for
@@ -772,7 +772,6 @@ case $host in
        esac
      fi
 
-     AX_CHECK_LINK_FLAG([-Wl,-headerpad_max_install_names], [CORE_LDFLAGS="$CORE_LDFLAGS -Wl,-headerpad_max_install_names"], [], [$LDFLAG_WERROR])
      CORE_CPPFLAGS="$CORE_CPPFLAGS -DMAC_OSX -DOBJC_OLD_DISPATCH_PROTOTYPES=0"
 
      dnl ignore deprecated-declarations warnings coming from objcxx code
@@ -1706,7 +1705,6 @@ AM_CONDITIONAL([ENABLE_QT_TESTS], [test "$BUILD_TEST_QT" = "yes"])
 AM_CONDITIONAL([ENABLE_BENCH], [test "$use_bench" = "yes"])
 AM_CONDITIONAL([USE_QRCODE], [test "$use_qr" = "yes"])
 AM_CONDITIONAL([USE_LCOV], [test "$use_lcov" = "yes"])
-AM_CONDITIONAL([USE_LIBEVENT], [test "$use_libevent" = "yes"])
 AM_CONDITIONAL([HARDEN], [test "$use_hardening" = "yes"])
 AM_CONDITIONAL([ENABLE_SSE42], [test "$enable_sse42" = "yes"])
 AM_CONDITIONAL([ENABLE_SSE41], [test "$enable_sse41" = "yes"])
