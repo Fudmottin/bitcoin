@@ -6,6 +6,7 @@
 
 #include <common/args.h>
 #include <node/blockstorage.h>
+#include <node/database_args.h>
 #include <tinyformat.h>
 #include <util/result.h>
 #include <util/translation.h>
@@ -16,6 +17,7 @@
 namespace node {
 util::Result<void> ApplyArgsManOptions(const ArgsManager& args, BlockManager::Options& opts)
 {
+    if (auto value{args.GetBoolArg("-blocksxor")}) opts.use_xor = *value;
     // block pruning; get the amount of disk space (in MiB) to allot for block & undo files
     int64_t nPruneArg{args.GetIntArg("-prune", opts.prune_target)};
     if (nPruneArg < 0) {
@@ -33,7 +35,7 @@ util::Result<void> ApplyArgsManOptions(const ArgsManager& args, BlockManager::Op
 
     if (auto value{args.GetBoolArg("-fastprune")}) opts.fast_prune = *value;
 
-    if (auto value{args.GetBoolArg("-reindex")}) opts.reindex = *value;
+    ReadDatabaseArgs(args, opts.block_tree_db_params.options);
 
     return {};
 }

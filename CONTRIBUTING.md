@@ -36,8 +36,7 @@ list or changes that are
 Some of them might no longer be applicable. So if you are interested, but
 unsure, you might want to leave a comment on the issue first.
 
-You may also participate in the weekly
-[Bitcoin Core PR Review Club](https://bitcoincore.reviews/) meeting.
+You may also participate in the [Bitcoin Core PR Review Club](https://bitcoincore.reviews/).
 
 ### Good First Issue Label
 
@@ -149,11 +148,11 @@ the pull request affects. Valid areas as:
   - `net` or `p2p` for changes to the peer-to-peer network code
   - `refactor` for structural changes that do not change behavior
   - `rpc`, `rest` or `zmq` for changes to the RPC, REST or ZMQ APIs
-  - `script` for changes to the scripts and tools
+  - `contrib` or `cli` for changes to the scripts and tools
   - `test`, `qa` or `ci` for changes to the unit tests, QA tests or CI code
   - `util` or `lib` for changes to the utils or libraries
   - `wallet` for changes to the wallet code
-  - `build` for changes to the GNU Autotools or MSVC builds
+  - `build` for changes to CMake
   - `guix` for changes to the GUIX reproducible builds
 
 Examples:

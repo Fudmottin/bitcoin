@@ -14,31 +14,31 @@ import sys
 
 import lief
 
-# Debian 10 (Buster) EOL: 2024. https://wiki.debian.org/LTS
+# Debian 11 (Bullseye) EOL: 2026. https://wiki.debian.org/LTS
 #
-# - libgcc version 8.3.0 (https://packages.debian.org/search?suite=buster&arch=any&searchon=names&keywords=libgcc1)
-# - libc version 2.28 (https://packages.debian.org/search?suite=buster&arch=any&searchon=names&keywords=libc6)
+# - libgcc version 10.2.1 (https://packages.debian.org/bullseye/libgcc-s1)
+# - libc version 2.31 (https://packages.debian.org/source/bullseye/glibc)
 #
-# Ubuntu 18.04 (Bionic) EOL: 2028. https://wiki.ubuntu.com/ReleaseTeam
+# Ubuntu 20.04 (Focal) EOL: 2030. https://wiki.ubuntu.com/ReleaseTeam
 #
-# - libgcc version 8.4.0 (https://packages.ubuntu.com/bionic/libgcc1)
-# - libc version 2.27 (https://packages.ubuntu.com/bionic/libc6)
+# - libgcc version 10.5.0 (https://packages.ubuntu.com/focal/libgcc1)
+# - libc version 2.31 (https://packages.ubuntu.com/focal/libc6)
 #
-# CentOS Stream 8 EOL: 2024. https://wiki.centos.org/About/Product
+# CentOS Stream 9 EOL: 2027. https://www.centos.org/cl-vs-cs/#end-of-life
 #
-# - libgcc version 8.5.0 (http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/)
-# - libc version 2.28 (http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/)
+# - libgcc version 12.2.1 (https://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/)
+# - libc version 2.34 (https://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/Packages/)
 #
 # See https://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html for more info.
 
 MAX_VERSIONS = {
 'GCC':       (4,3,0),
 'GLIBC': {
-    lief.ELF.ARCH.x86_64: (2,27),
-    lief.ELF.ARCH.ARM:    (2,27),
-    lief.ELF.ARCH.AARCH64:(2,27),
-    lief.ELF.ARCH.PPC64:  (2,27),
-    lief.ELF.ARCH.RISCV:  (2,27),
+    lief.ELF.ARCH.x86_64: (2,31),
+    lief.ELF.ARCH.ARM:    (2,31),
+    lief.ELF.ARCH.AARCH64:(2,31),
+    lief.ELF.ARCH.PPC64:  (2,31),
+    lief.ELF.ARCH.RISCV:  (2,31),
 },
 'LIBATOMIC': (1,0),
 'V':         (0,5,0),  # xkb (bitcoin-qt only)
@@ -112,6 +112,7 @@ ELF_ALLOWED_LIBRARIES = {
 'libfontconfig.so.1', # font support
 'libfreetype.so.6', # font parsing
 'libdl.so.2', # programming interface to dynamic linker
+'libxcb-cursor.so.0',
 'libxcb-icccm.so.4',
 'libxcb-image.so.0',
 'libxcb-shm.so.0',
@@ -146,8 +147,9 @@ MACHO_ALLOWED_LIBRARIES = {
 'IOSurface', # cross process image/drawing buffers
 'libobjc.A.dylib', # Objective-C runtime library
 'Metal', # 3D graphics
-'Security', # access control and authentication
 'QuartzCore', # animation
+'Security', # access control and authentication
+'UniformTypeIdentifiers', # collection of types that map to MIME and file types
 }
 
 PE_ALLOWED_LIBRARIES = {
@@ -158,7 +160,17 @@ PE_ALLOWED_LIBRARIES = {
 'SHELL32.dll', # shell API
 'WS2_32.dll', # sockets
 # bitcoin-qt only
+'api-ms-win-core-synch-l1-2-0.dll', # Synchronization Primitives API
+'api-ms-win-core-winrt-l1-1-0.dll', # Windows Runtime API
+'api-ms-win-core-winrt-string-l1-1-0.dll', # WinRT String API
+'AUTHZ.dll', # Windows Authorization Framework
+'comdlg32.dll', # Common Dialog Box Library
+'d3d11.dll', # Direct3D 11 API
+'d3d12.dll', # Direct3D 12 API
+'d3d9.dll', # Direct3D 9 API
 'dwmapi.dll', # desktop window manager
+'DWrite.dll', # DirectX Typography Services
+'dxgi.dll', # DirectX Graphics Infrastructure
 'GDI32.dll', # graphics device interface
 'IMM32.dll', # input method editor
 'NETAPI32.dll', # network management
@@ -171,6 +183,8 @@ PE_ALLOWED_LIBRARIES = {
 'VERSION.dll', # version checking
 'WINMM.dll', # WinMM audio API
 'WTSAPI32.dll', # Remote Desktop
+'SETUPAPI.dll', # Windows Setup API
+'SHCORE.dll', # Stream Handler Core
 }
 
 def check_version(max_versions, version, arch) -> bool:
@@ -212,6 +226,11 @@ def check_exported_symbols(binary) -> bool:
         ok = False
     return ok
 
+def check_RUNPATH(binary) -> bool:
+    assert binary.get(lief.ELF.DYNAMIC_TAGS.RUNPATH) is None
+    assert binary.get(lief.ELF.DYNAMIC_TAGS.RPATH) is None
+    return True
+
 def check_ELF_libraries(binary) -> bool:
     ok: bool = True
     for library in binary.libraries:
@@ -230,7 +249,7 @@ def check_MACHO_libraries(binary) -> bool:
     return ok
 
 def check_MACHO_min_os(binary) -> bool:
-    if binary.build_version.minos == [11,0,0]:
+    if binary.build_version.minos == [13,0,0]:
         return True
     return False
 
@@ -239,8 +258,8 @@ def check_MACHO_sdk(binary) -> bool:
         return True
     return False
 
-def check_MACHO_ld64(binary) -> bool:
-    if binary.build_version.tools[0].version == [711, 0, 0]:
+def check_MACHO_lld(binary) -> bool:
+    if binary.build_version.tools[0].version == [18, 1, 8]:
         return True
     return False
 
@@ -255,7 +274,7 @@ def check_PE_libraries(binary) -> bool:
 def check_PE_subsystem_version(binary) -> bool:
     major: int = binary.optional_header.major_subsystem_version
     minor: int = binary.optional_header.minor_subsystem_version
-    if major == 6 and minor == 1:
+    if major == 6 and minor == 2:
         return True
     return False
 
@@ -277,12 +296,13 @@ lief.EXE_FORMATS.ELF: [
     ('LIBRARY_DEPENDENCIES', check_ELF_libraries),
     ('INTERPRETER_NAME', check_ELF_interpreter),
     ('ABI', check_ELF_ABI),
+    ('RUNPATH', check_RUNPATH),
 ],
 lief.EXE_FORMATS.MACHO: [
     ('DYNAMIC_LIBRARIES', check_MACHO_libraries),
     ('MIN_OS', check_MACHO_min_os),
     ('SDK', check_MACHO_sdk),
-    ('LD64', check_MACHO_ld64),
+    ('LLD', check_MACHO_lld),
 ],
 lief.EXE_FORMATS.PE: [
     ('DYNAMIC_LIBRARIES', check_PE_libraries),
@@ -293,22 +313,14 @@ lief.EXE_FORMATS.PE: [
 if __name__ == '__main__':
     retval: int = 0
     for filename in sys.argv[1:]:
-        try:
-            binary = lief.parse(filename)
-            etype = binary.format
-            if etype == lief.EXE_FORMATS.UNKNOWN:
-                print(f'{filename}: unknown executable format')
-                retval = 1
-                continue
+        binary = lief.parse(filename)
+        etype = binary.format
 
-            failed: list[str] = []
-            for (name, func) in CHECKS[etype]:
-                if not func(binary):
-                    failed.append(name)
-            if failed:
-                print(f'{filename}: failed {" ".join(failed)}')
-                retval = 1
-        except IOError:
-            print(f'{filename}: cannot open')
+        failed: list[str] = []
+        for (name, func) in CHECKS[etype]:
+            if not func(binary):
+                failed.append(name)
+        if failed:
+            print(f'{filename}: failed {" ".join(failed)}')
             retval = 1
     sys.exit(retval)
